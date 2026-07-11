@@ -14,7 +14,9 @@ function removeScriptModuleType(): Plugin {
     name: 'remove-script-module-type',
     enforce: 'post',
     transformIndexHtml(html) {
-      return html.replace(/<script\s+type="module"([^>]*)>/gi, '<script$1>');
+      // Remove type="module" (some mobile browsers don't like it) and add
+      // defer so the classic script still executes after the DOM is parsed.
+      return html.replace(/<script\s+type="module"\s*([^>]*)>/gi, '<script defer $1>');
     },
   };
 }
