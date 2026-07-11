@@ -7,16 +7,28 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 // Default repo: lxl1234-lxl/Collegium-Cassellianum
 const base = process.env.REPO_NAME ? `/${process.env.REPO_NAME}/` : "/Collegium-Cassellianum/";
 
-// Remove type="module" from the final inline script so the single-file HTML
-// runs reliably on mobile browsers / WebViews that have flaky ES module support.
+// Remove type="module" from the final inline script and move it to the end
+// of <body> so the classic script runs after #root is in the DOM.
+// (defer is ignored on inline scripts per HTML spec, so physical placement
+//  is the only reliable way to ensure #root exists when the script executes.)
+// This also fixes mobile browsers / WebViews that have flaky ES module support.
 function removeScriptModuleType(): Plugin {
   return {
     name: 'remove-script-module-type',
     enforce: 'post',
     transformIndexHtml(html) {
-      // Remove type="module" (some mobile browsers don't like it) and add
-      // defer so the classic script still executes after the DOM is parsed.
-      return html.replace(/<script\s+type="module"\s*([^>]*)>/gi, '<script defer $1>');
+      let scriptTag = '';
+      html = html.replace(
+        /<script\s+type="module"([^>]*)>([\s\S]*?)<\/script>/gi,
+        (_, attrs, body) => {
+          scriptTag = `<script${attrs}>${body}</script>`;
+          return '';
+        },
+      );
+      if (scriptTag) {
+        html = html.replace('</body>', `${scriptTag}</body>`);
+      }
+      return html;
     },
   };
 }
