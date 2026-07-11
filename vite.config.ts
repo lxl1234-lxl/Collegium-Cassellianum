@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from "vite-tsconfig-paths";
 import { viteSingleFile } from "vite-plugin-singlefile";
@@ -6,6 +6,18 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 // GitHub Pages repo base path: set REPO_NAME env var, or use '/' for user/org pages
 // Default repo: lxl1234-lxl/Collegium-Cassellianum
 const base = process.env.REPO_NAME ? `/${process.env.REPO_NAME}/` : "/Collegium-Cassellianum/";
+
+// Remove type="module" from the final inline script so the single-file HTML
+// runs reliably on mobile browsers / WebViews that have flaky ES module support.
+function removeScriptModuleType(): Plugin {
+  return {
+    name: 'remove-script-module-type',
+    enforce: 'post',
+    transformIndexHtml(html) {
+      return html.replace(/<script\s+type="module"([^>]*)>/gi, '<script$1>');
+    },
+  };
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -26,5 +38,6 @@ export default defineConfig({
     }),
     tsconfigPaths(),
     viteSingleFile({ removeViteModuleLoader: true }),
+    removeScriptModuleType(),
   ],
 })

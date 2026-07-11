@@ -37,3 +37,8 @@ test-results
 
 # Local generated single-file HTML (rebuild anytime)
 卡塞尔学院守夜人社区.html
+
+# Test screenshots and local reference images
+screenshot-*.png
+2026*.png
+kse.png
